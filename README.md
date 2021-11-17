@@ -1,5 +1,7 @@
 # The kafka-connect-zeebe Benchmark
 
+# OUTDATED/UNMAINTAINED: This project uses Zeebe 0.x, and Zeebe is already on version > 1.0 with some API changes. In order to leverage this project you need to upgrade all components. 
+
 This project runs a simple benchmark on https://github.com/zeebe-io/kafka-connect-zeebe to check thorughput for different test scenarios.
 
 The workflow sample is based https://github.com/zeebe-io/kafka-connect-zeebe/tree/master/examples/ping-pong
