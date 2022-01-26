@@ -10,15 +10,15 @@ from zeebe_grpc import gateway_pb2, gateway_pb2_grpc
 from confluent_kafka import Consumer, KafkaError
 from elasticsearch import Elasticsearch
 
-def startWorkflowInstance(stub, payload):
-	return stub.CreateWorkflowInstance.future(gateway_pb2.CreateWorkflowInstanceRequest(
+def startProcessInstance(stub, payload):
+	return stub.CreateProcessInstance.future(gateway_pb2.CreateProcessInstanceRequest(
 			bpmnProcessId='ping-pong',
 			version=-1,
 			variables=payload.replace('RANDOM', str(uuid.uuid1()))))
 
 
-def startWorkflowInstances(numberOfInstances, payload):
-	print( "## Start Workflow Instances ")
+def startProcessInstances(numberOfInstances, payload):
+	print( "## Start process instances ")
 	start = timer()
 
 	file = open('payloads/payload-'+payload+'.json', 'r')
@@ -29,7 +29,7 @@ def startWorkflowInstances(numberOfInstances, payload):
 		createdInstances = 0
 		while createdInstances < numberOfInstances:
 			batch = min(numberOfInstances - createdInstances, 100)
-			futures = [startWorkflowInstance(stub, payload) for i in range(0, batch)]
+			futures = [startProcessInstance(stub, payload) for i in range(0, batch)]
 			for future in futures:
 				try:
 					future.result()
@@ -42,7 +42,7 @@ def startWorkflowInstances(numberOfInstances, payload):
 						raise e
 
 
-	print("Started workflows instances: " + str(timedelta(seconds=timer()-start)))
+	print("Started process instances: " + str(timedelta(seconds=timer()-start)))
 
 def startKafkaConnectSource():
 	contents = open('source.json', 'rb').read()
@@ -122,21 +122,21 @@ def waitForWorkflowsToBeFinished():
 	start = timer()
 	numberOfWorkflowsRunning = 1;
 	while (numberOfWorkflowsRunning > 0):
-		numberOfWorkflowsRunning = getMetricValue("zeebe_running_workflow_instances_total");
+		numberOfWorkflowsRunning = getMetricValue("zeebe_executed_instances_total");
 	print("Workflows finished: " + str(timedelta(seconds=timer()-start)))
 
 def waitForJobsToBeCreated():
 	print( "## Wait for some jobs in Zeebe to be created" )
 	numberOfJobsPending = 0;
 	while (numberOfJobsPending == 0):
-		numberOfJobsPending = getMetricValue("zeebe_pending_jobs_total");
+		numberOfJobsPending = getMetricValue("zeebe_job_events_total");
 
 def waitForJobsToBeFinished():
 	print( "## Wait for all jobs in Zeebe to be processed" )
 	start = timer()	
 	numberOfJobsPending = 1;
 	while (numberOfJobsPending > 0):
-		numberOfJobsPending = getMetricValue("zeebe_pending_jobs_total");
+		numberOfJobsPending = getMetricValue("zeebe_job_events_total");
 	print("Jobs Finished: " + str(timedelta(seconds=timer()-start)))
 
 
@@ -157,14 +157,16 @@ deleteKafkaConnectSource()
 deleteKafkaConnectSink()
 
 # Run test scenario
-startWorkflowInstances(number, payload)
-waitForJobsToBeCreated() # make sure we have the jobs also available in Prometheus - otherwise the scrape interval might lead to a situation where we pass on too quickly because no jobs are vsisible
+startProcessInstances(number, payload)
+
+# skipt the waiting for the moment, even if run time get more unreliable then
+#waitForJobsToBeCreated() # make sure we have the jobs also available in Prometheus - otherwise the scrape interval might lead to a situation where we pass on too quickly because no jobs are vsisible
 
 startKafkaConnectSource()
-waitForJobsToBeFinished()
-#waitForRecordsToArrive(number)
-deleteKafkaConnectSource()
+#waitForJobsToBeFinished()
+##waitForRecordsToArrive(number)
+#deleteKafkaConnectSource()
 
 startKafkaConnectSink()
-waitForWorkflowsToBeFinished()
-deleteKafkaConnectSink()
+#waitForWorkflowsToBeFinished()
+#deleteKafkaConnectSink()

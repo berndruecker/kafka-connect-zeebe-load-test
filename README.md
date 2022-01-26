@@ -34,9 +34,10 @@ Docker compose will start:
     - [Zookeeper](https://zookeeper.apache.org/), on port `2081`.
 - [Kafka Connect](https://docs.confluent.io/current/connect/index.html), on port `8083`.
 - Monitoring tools
-    - [Operate](https://github.com/zeebe-io/zeebe/releases/tag/0.20.0), a [monitoring tool for Zeebe](https://zeebe.io/blog/2019/04/announcing-operate-visibility-and-problem-solving/), on port `8080`.
+    - Operate on port `8080`.
         - Operate has an external dependency on [Elasticsearch](https://www.elastic.co/), which we'll also run on port `9200`.
     - [Confluent Control Center](https://www.confluent.io/confluent-control-center/), on port `9021`. This will be our tool to monitor the Kafka cluster, create connectors, visualize Kafka topics, etc.
+    - Grafana: http://localhost:3000 (admin/admin)
 
 This Docker Compose file is based on the examples provided by Zeebe and Confluent:
 
@@ -67,6 +68,7 @@ python run-test.py 1 1
 In order to run it you need to install python and:
 
 ```
+pip install requests
 pip install zeebe-grpc
 pip install confluent-kafka
 pip install elasticsearch
